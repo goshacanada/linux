@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
+# Copyright 2024 Hewlett Packard Enterprise Development LP
+#
+# CXI (Cassini) InfiniBand device configuration
+#
+
+config INFINIBAND_CXI
+	tristate "CXI (Cassini) InfiniBand support"
+	depends on PCI_MSI && 64BIT && !CPU_BIG_ENDIAN
+	depends on INFINIBAND_USER_ACCESS
+	depends on CXI_CORE
+	help
+	  This driver supports CXI (Cassini) InfiniBand devices from
+	  Hewlett Packard Enterprise. The CXI driver provides high-performance
+	  RDMA capabilities for HPC and data center applications.
+
+	  To compile this driver as a module, choose M here.
+	  The module will be called cxi_ib.
