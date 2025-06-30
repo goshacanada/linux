@@ -19,8 +19,13 @@ The driver follows the standard InfiniBand driver architecture with the followin
 - **cxi_com_cmd.c** - Command operations implementation
 - **cxi_com_cmd.h** - Command structures and definitions
 - **cxi_com.h** - Communication layer header
+- **cxidv.h** - User-space API header for CXI Direct Verbs
 - **Kconfig** - Kernel configuration options
 - **Makefile** - Build configuration
+
+### UAPI Files
+
+- **include/uapi/rdma/cxi-abi.h** - Kernel-userspace ABI definitions
 
 ### Key Components
 

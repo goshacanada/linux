@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include <infiniband/verbs.h>
+#include <rdma/cxi-abi.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,66 +17,37 @@ extern "C" {
 /* CXI Direct Verbs - Vendor-specific extensions */
 
 /* CXI Method 1 attributes structure - Device information */
-struct cxidv_method1_attr {
-	uint64_t comp_mask;
-	uint32_t nic_addr;
-	uint32_t pid_granule;
-	uint32_t pid_count;
-	uint32_t pid_bits;
-	uint32_t min_free_shift;
-	uint8_t reserved[4];
-};
+typedef struct cxi_ibv_method1_resp cxidv_method1_attr;
 
 /* CXI Method 2 attributes structure - Memory region information */
-struct cxidv_method2_attr {
-	uint64_t comp_mask;
-	uint32_t md_handle;
-	uint64_t iova;
-	uint64_t length;
-	uint32_t access_flags;
-	uint8_t reserved[4];
-};
+typedef struct cxi_ibv_method2_resp cxidv_method2_attr;
 
 /* CXI Method 3 attributes structure - Queue pair information */
-struct cxidv_method3_attr {
-	uint64_t comp_mask;
-	uint32_t txq_handle;
-	uint32_t tgq_handle;
-	uint32_t cmdq_handle;
-	uint32_t eq_handle;
-	uint32_t state;
-	uint8_t reserved[4];
-};
+typedef struct cxi_ibv_method3_resp cxidv_method3_attr;
 
-/* CXI device capabilities flags */
-enum {
-	CXIDV_DEVICE_CAP_ATOMIC_OPS = 1 << 0,
-	CXIDV_DEVICE_CAP_RDMA_READ = 1 << 1,
-	CXIDV_DEVICE_CAP_RDMA_WRITE = 1 << 2,
-	CXIDV_DEVICE_CAP_MULTICAST = 1 << 3,
-	CXIDV_DEVICE_CAP_TRIGGERED_OPS = 1 << 4,
-	CXIDV_DEVICE_CAP_RESTRICTED_MEMBERS = 1 << 5,
-};
+/* CXI device capabilities flags - use UAPI definitions */
+#define CXIDV_DEVICE_CAP_ATOMIC_OPS         CXI_DEVICE_CAP_ATOMIC_OPS
+#define CXIDV_DEVICE_CAP_RDMA_READ          CXI_DEVICE_CAP_RDMA_READ
+#define CXIDV_DEVICE_CAP_RDMA_WRITE         CXI_DEVICE_CAP_RDMA_WRITE
+#define CXIDV_DEVICE_CAP_MULTICAST          CXI_DEVICE_CAP_MULTICAST
+#define CXIDV_DEVICE_CAP_TRIGGERED_OPS      CXI_DEVICE_CAP_TRIGGERED_OPS
+#define CXIDV_DEVICE_CAP_RESTRICTED_MEMBERS CXI_DEVICE_CAP_RESTRICTED_MEMBERS
 
-/* CXI memory region access flags */
-enum {
-	CXIDV_MR_ACCESS_LOCAL_READ = 1 << 0,
-	CXIDV_MR_ACCESS_LOCAL_WRITE = 1 << 1,
-	CXIDV_MR_ACCESS_REMOTE_READ = 1 << 2,
-	CXIDV_MR_ACCESS_REMOTE_WRITE = 1 << 3,
-	CXIDV_MR_ACCESS_REMOTE_ATOMIC = 1 << 4,
-};
+/* CXI memory region access flags - use UAPI definitions */
+#define CXIDV_MR_ACCESS_LOCAL_READ    CXI_MR_ACCESS_LOCAL_READ
+#define CXIDV_MR_ACCESS_LOCAL_WRITE   CXI_MR_ACCESS_LOCAL_WRITE
+#define CXIDV_MR_ACCESS_REMOTE_READ   CXI_MR_ACCESS_REMOTE_READ
+#define CXIDV_MR_ACCESS_REMOTE_WRITE  CXI_MR_ACCESS_REMOTE_WRITE
+#define CXIDV_MR_ACCESS_REMOTE_ATOMIC CXI_MR_ACCESS_REMOTE_ATOMIC
 
-/* CXI queue pair states */
-enum {
-	CXIDV_QP_STATE_RESET = 0,
-	CXIDV_QP_STATE_INIT = 1,
-	CXIDV_QP_STATE_RTR = 2,
-	CXIDV_QP_STATE_RTS = 3,
-	CXIDV_QP_STATE_SQD = 4,
-	CXIDV_QP_STATE_SQE = 5,
-	CXIDV_QP_STATE_ERR = 6,
-};
+/* CXI queue pair states - use UAPI definitions */
+#define CXIDV_QP_STATE_RESET CXI_QP_STATE_RESET
+#define CXIDV_QP_STATE_INIT  CXI_QP_STATE_INIT
+#define CXIDV_QP_STATE_RTR   CXI_QP_STATE_RTR
+#define CXIDV_QP_STATE_RTS   CXI_QP_STATE_RTS
+#define CXIDV_QP_STATE_SQD   CXI_QP_STATE_SQD
+#define CXIDV_QP_STATE_SQE   CXI_QP_STATE_SQE
+#define CXIDV_QP_STATE_ERR   CXI_QP_STATE_ERR
 
 /**
  * cxidv_method1 - CXI Method 1 - Query device information
@@ -140,13 +112,13 @@ static inline const char *cxidv_get_version(void)
 	(offsetof(type, field) + sizeof(((type *)0)->field) <= (inlen))
 
 #define CXIDV_METHOD1_ATTR_FIELD_AVAIL(field, inlen) \
-	CXIDV_FIELD_AVAIL(struct cxidv_method1_attr, field, inlen)
+	CXIDV_FIELD_AVAIL(struct cxi_ibv_method1_resp, field, inlen)
 
 #define CXIDV_METHOD2_ATTR_FIELD_AVAIL(field, inlen) \
-	CXIDV_FIELD_AVAIL(struct cxidv_method2_attr, field, inlen)
+	CXIDV_FIELD_AVAIL(struct cxi_ibv_method2_resp, field, inlen)
 
 #define CXIDV_METHOD3_ATTR_FIELD_AVAIL(field, inlen) \
-	CXIDV_FIELD_AVAIL(struct cxidv_method3_attr, field, inlen)
+	CXIDV_FIELD_AVAIL(struct cxi_ibv_method3_resp, field, inlen)
 
 #ifdef __cplusplus
 }

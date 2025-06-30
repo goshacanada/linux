@@ -576,7 +576,7 @@ static int UVERBS_HANDLER(CXI_IB_METHOD_1)(struct uverbs_attr_bundle *attrs)
 {
 	struct ib_device *ibdev = attrs->context->device;
 	struct cxi_ib_dev *dev = container_of(ibdev, struct cxi_ib_dev, ibdev);
-	struct cxi_ib_method1_resp resp = {};
+	struct cxi_ibv_method1_resp resp = {};
 	int ret;
 
 	/* Fill device-specific information */
@@ -624,7 +624,7 @@ static int UVERBS_HANDLER(CXI_IB_METHOD_2)(struct uverbs_attr_bundle *attrs)
 {
 	struct ib_mr *ibmr = uverbs_attr_get_obj(attrs, CXI_IB_ATTR_METHOD2_MR_HANDLE);
 	struct cxi_ib_mr *mr = container_of(ibmr, struct cxi_ib_mr, ibmr);
-	struct cxi_ib_method2_resp resp = {};
+	struct cxi_ibv_method2_resp resp = {};
 	int ret;
 
 	if (!ibmr) {
@@ -670,7 +670,7 @@ static int UVERBS_HANDLER(CXI_IB_METHOD_3)(struct uverbs_attr_bundle *attrs)
 {
 	struct ib_qp *ibqp = uverbs_attr_get_obj(attrs, CXI_IB_ATTR_METHOD3_QP_HANDLE);
 	struct cxi_ib_qp *qp = container_of(ibqp, struct cxi_ib_qp, ibqp);
-	struct cxi_ib_method3_resp resp = {};
+	struct cxi_ibv_method3_resp resp = {};
 	int ret;
 
 	if (!ibqp) {
