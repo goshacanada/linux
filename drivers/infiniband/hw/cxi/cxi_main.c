@@ -7,11 +7,19 @@
 #include <linux/pci.h>
 #include <linux/utsname.h>
 #include <linux/version.h>
+#include <linux/errno.h>
+#include <linux/slab.h>
 
 #include <rdma/ib_user_verbs.h>
 #include <rdma/uverbs_ioctl.h>
 
 #include "cxi.h"
+
+/* PCI Vendor and Device IDs for CXI devices */
+#define PCI_VENDOR_ID_HPE		0x1590
+#define PCI_VENDOR_ID_CRAY		0x17db
+#define PCI_DEVICE_ID_CASSINI_1		0x0501
+#define PCI_DEVICE_ID_CASSINI_2		0x0371
 
 /* External declaration for vendor-specific UAPI definitions */
 extern const struct uapi_definition cxi_ib_uapi_defs[];
@@ -20,23 +28,29 @@ MODULE_AUTHOR("Hewlett Packard Enterprise Development LP");
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_DESCRIPTION(DEVICE_NAME);
 
-static void cxi_ib_async_event_handler(struct cxi_dev *cxi_dev,
-				       enum cxi_async_event event)
-{
-	struct cxi_ib_dev *dev = cxi_to_cxi_ib_dev(cxi_dev);
+/* PCI Device ID table for CXI devices */
+static const struct pci_device_id cxi_ib_pci_table[] = {
+	{ PCI_VDEVICE(HPE, PCI_DEVICE_ID_CASSINI_2), 0 },	/* Cassini 2 */
+	{ PCI_VDEVICE(CRAY, PCI_DEVICE_ID_CASSINI_1), 0 },	/* Cassini 1 */
+	{ 0 }
+};
+MODULE_DEVICE_TABLE(pci, cxi_ib_pci_table);
 
+/* Async event handler - placeholder for future implementation */
+static void cxi_ib_async_event_handler(struct cxi_ib_dev *dev, int event_type)
+{
 	if (!dev)
 		return;
 
-	switch (event) {
-	case CXI_ASYNC_EVENT_LINK_UP:
+	switch (event_type) {
+	case 1: /* Link up */
 		ibdev_info(&dev->ibdev, "Link up event received\n");
 		break;
-	case CXI_ASYNC_EVENT_LINK_DOWN:
+	case 2: /* Link down */
 		ibdev_info(&dev->ibdev, "Link down event received\n");
 		break;
 	default:
-		ibdev_warn(&dev->ibdev, "Unknown async event %d\n", event);
+		ibdev_warn(&dev->ibdev, "Unknown async event %d\n", event_type);
 		break;
 	}
 
@@ -127,62 +141,103 @@ static void cxi_ib_device_remove(struct cxi_ib_dev *dev)
 	ib_unregister_device(&dev->ibdev);
 }
 
-static int cxi_ib_add_device(struct cxi_dev *cxi_dev)
+static int cxi_ib_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 {
 	struct cxi_ib_dev *dev;
 	int err;
 
-	dev = ib_alloc_device(cxi_ib_dev, ibdev);
-	if (!dev) {
-		dev_err(&cxi_dev->pdev->dev, "Failed to allocate IB device\n");
-		return -ENOMEM;
+	/* Enable PCI device */
+	err = pci_enable_device(pdev);
+	if (err) {
+		dev_err(&pdev->dev, "Failed to enable PCI device: %d\n", err);
+		return err;
 	}
 
-	dev->cxi_dev = cxi_dev;
+	/* Set DMA mask */
+	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
+	if (err) {
+		dev_err(&pdev->dev, "Failed to set DMA mask: %d\n", err);
+		goto err_disable_device;
+	}
+
+	/* Set PCI master */
+	pci_set_master(pdev);
+
+	/* Allocate IB device */
+	dev = ib_alloc_device(cxi_ib_dev, ibdev);
+	if (!dev) {
+		dev_err(&pdev->dev, "Failed to allocate IB device\n");
+		err = -ENOMEM;
+		goto err_disable_device;
+	}
+
+	/* Initialize device */
+	dev->pdev = pdev;
 	xa_init(&dev->cqs_xa);
+	cxi_ib_stats_init(dev);
+
+	/* Initialize device info with default values */
+	dev->dev_info.nid = 0x1000; /* Default NID */
+	dev->dev_info.pid_granule = 1;
+	dev->dev_info.pid_count = 1024;
+	dev->dev_info.pid_bits = 10;
+	dev->dev_info.min_free_shift = 6;
+	dev->dev_info.max_msg_size = 65536;
+	dev->dev_info.max_eq_size = 1024;
+	dev->dev_info.max_ct_size = 1024;
+	dev->dev_info.max_trig_size = 1024;
+	dev->dev_info.max_ptlte_size = 1024;
 
 	/* Store the cxi_ib_dev as driver data for easy access */
-	dev_set_drvdata(&cxi_dev->pdev->dev, dev);
+	pci_set_drvdata(pdev, dev);
 
 	err = cxi_ib_device_add(dev);
 	if (err) {
-		dev_err(&cxi_dev->pdev->dev, "Failed to add IB device: %d\n", err);
+		dev_err(&pdev->dev, "Failed to add IB device: %d\n", err);
 		goto err_dealloc;
 	}
 
+	dev_info(&pdev->dev, "CXI InfiniBand device added\n");
 	return 0;
 
 err_dealloc:
 	xa_destroy(&dev->cqs_xa);
 	ib_dealloc_device(&dev->ibdev);
+err_disable_device:
+	pci_disable_device(pdev);
 	return err;
 }
 
-static void cxi_ib_remove_device(struct cxi_dev *cxi_dev)
+static void cxi_ib_pci_remove(struct pci_dev *pdev)
 {
-	struct cxi_ib_dev *dev = cxi_to_cxi_ib_dev(cxi_dev);
+	struct cxi_ib_dev *dev = pci_get_drvdata(pdev);
 
 	if (!dev)
 		return;
 
+	dev_info(&pdev->dev, "Removing CXI InfiniBand device\n");
+
 	cxi_ib_device_remove(dev);
 	xa_destroy(&dev->cqs_xa);
 	ib_dealloc_device(&dev->ibdev);
+	pci_disable_device(pdev);
 }
 
-static struct cxi_client cxi_ib_client = {
-	.add = cxi_ib_add_device,
-	.remove = cxi_ib_remove_device,
-	.async_event = cxi_ib_async_event_handler,
+/* PCI driver structure */
+static struct pci_driver cxi_ib_pci_driver = {
+	.name		= "cxi_ib",
+	.id_table	= cxi_ib_pci_table,
+	.probe		= cxi_ib_pci_probe,
+	.remove		= cxi_ib_pci_remove,
 };
 
 static int __init cxi_ib_init(void)
 {
 	int ret;
 
-	ret = cxi_register_client(&cxi_ib_client);
+	ret = pci_register_driver(&cxi_ib_pci_driver);
 	if (ret) {
-		pr_err("Failed to register CXI IB client: %d\n", ret);
+		pr_err("Failed to register CXI IB PCI driver: %d\n", ret);
 		return ret;
 	}
 
@@ -192,7 +247,7 @@ static int __init cxi_ib_init(void)
 
 static void __exit cxi_ib_exit(void)
 {
-	cxi_unregister_client(&cxi_ib_client);
+	pci_unregister_driver(&cxi_ib_pci_driver);
 	pr_info("CXI InfiniBand driver unloaded\n");
 }
 

@@ -10,13 +10,27 @@
 #include <linux/interrupt.h>
 #include <linux/pci.h>
 #include <linux/xarray.h>
+#include <linux/types.h>
 
 #include <rdma/ib_verbs.h>
 #include <rdma/ib_user_verbs.h>
-
-#include <linux/cxi/cxi.h>
 #include <rdma/cxi-abi.h>
+
 #include "cxi_com_cmd.h"
+
+/* CXI device information structure */
+struct cxi_dev_info {
+	u32 nid;
+	u32 pid_granule;
+	u32 pid_count;
+	u32 pid_bits;
+	u32 min_free_shift;
+	u32 max_msg_size;
+	u32 max_eq_size;
+	u32 max_ct_size;
+	u32 max_trig_size;
+	u32 max_ptlte_size;
+};
 
 #define DRV_MODULE_NAME         "cxi_ib"
 #define DEVICE_NAME             "CXI (Cassini) InfiniBand Adapter"
@@ -37,9 +51,9 @@ struct cxi_ib_stats {
 
 struct cxi_ib_dev {
 	struct ib_device ibdev;
-	struct cxi_dev *cxi_dev;
+	struct pci_dev *pdev;
 
-	/* Device attributes from CXI driver */
+	/* Device attributes */
 	struct cxi_dev_info dev_info;
 
 	/* Statistics */
