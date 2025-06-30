@@ -16,6 +16,7 @@
 
 #include <linux/cxi/cxi.h>
 #include "cxi_com_cmd.h"
+#include "cxi_abi.h"
 
 #define DRV_MODULE_NAME         "cxi_ib"
 #define DEVICE_NAME             "CXI (Cassini) InfiniBand Adapter"

@@ -13,6 +13,9 @@
 
 #include "cxi.h"
 
+/* External declaration for vendor-specific UAPI definitions */
+extern const struct uapi_definition cxi_ib_uapi_defs[];
+
 MODULE_AUTHOR("Hewlett Packard Enterprise Development LP");
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_DESCRIPTION(DEVICE_NAME);
@@ -53,6 +56,7 @@ static const struct ib_device_ops cxi_ib_dev_ops = {
 	.owner = THIS_MODULE,
 	.driver_id = RDMA_DRIVER_UNKNOWN, /* Will need to register with RDMA core */
 	.uverbs_abi_ver = 1,
+	.uapi = cxi_ib_uapi_defs,
 
 	.alloc_hw_port_stats = cxi_ib_alloc_hw_port_stats,
 	.alloc_hw_device_stats = cxi_ib_alloc_hw_device_stats,

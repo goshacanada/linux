@@ -39,6 +39,24 @@ The driver follows the standard InfiniBand driver architecture with the followin
 - **Protection Domains (PD)**: Allocate, deallocate
 - **User Context**: Allocate, deallocate for user-space access
 
+#### Vendor-Specific Extensions
+The driver implements three vendor-specific ioctl handlers for advanced CXI functionality:
+
+1. **CXI Device Query** (`CXI_IB_METHOD_QUERY_DEVICE`)
+   - Retrieves CXI-specific device information
+   - Returns NIC address, PID granule, PID count, PID bits, and min_free_shift
+   - Accessible via `cxidv_query_device()` user-space API
+
+2. **CXI Memory Region Query** (`CXI_IB_METHOD_MR_QUERY`)
+   - Queries CXI-specific memory region attributes
+   - Returns MD handle, IOVA, length, and access flags
+   - Accessible via `cxidv_query_mr()` user-space API
+
+3. **CXI Queue Pair Query** (`CXI_IB_METHOD_QP_QUERY`)
+   - Retrieves CXI-specific queue pair information
+   - Returns TXQ handle, TGQ handle, command queue handle, event queue handle, and state
+   - Accessible via `cxidv_query_qp()` user-space API
+
 #### Communication Layer
 - Interfaces with the CXI core driver
 - Manages Logical Network Interface (LNI) allocation
@@ -85,6 +103,24 @@ Once loaded, the driver will:
 4. Provide standard InfiniBand verbs interface
 
 Applications can use standard RDMA libraries (libibverbs, libfabric) to access the devices.
+
+For vendor-specific functionality, applications can use the CXI Direct Verbs API:
+
+```c
+#include "cxidv.h"
+
+// Query CXI device information
+struct cxidv_device_attr dev_attr;
+int ret = cxidv_query_device(context, &dev_attr, sizeof(dev_attr));
+
+// Query CXI memory region information
+struct cxidv_mr_attr mr_attr;
+ret = cxidv_query_mr(mr, &mr_attr, sizeof(mr_attr));
+
+// Query CXI queue pair information
+struct cxidv_qp_attr qp_attr;
+ret = cxidv_query_qp(qp, &qp_attr, sizeof(qp_attr));
+```
 
 ## Testing
 
