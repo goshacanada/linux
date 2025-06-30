@@ -571,12 +571,12 @@ int cxi_ib_get_hw_stats(struct ib_device *ibdev, struct rdma_hw_stats *stats,
 	return 0;
 }
 
-/* Vendor-specific ioctl handler 1: Query CXI device information */
-static int UVERBS_HANDLER(CXI_IB_METHOD_QUERY_DEVICE)(struct uverbs_attr_bundle *attrs)
+/* Vendor-specific ioctl handler 1: CXI Method 1 - Device information query */
+static int UVERBS_HANDLER(CXI_IB_METHOD_1)(struct uverbs_attr_bundle *attrs)
 {
 	struct ib_device *ibdev = attrs->context->device;
 	struct cxi_ib_dev *dev = container_of(ibdev, struct cxi_ib_dev, ibdev);
-	struct cxi_ib_query_device_resp resp = {};
+	struct cxi_ib_method1_resp resp = {};
 	int ret;
 
 	/* Fill device-specific information */
@@ -588,43 +588,43 @@ static int UVERBS_HANDLER(CXI_IB_METHOD_QUERY_DEVICE)(struct uverbs_attr_bundle 
 	resp.min_free_shift = dev->dev_info.min_free_shift;
 
 	/* Copy response to user space */
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_DEVICE_RESP_NIC_ADDR,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD1_RESP_NIC_ADDR,
 			     &resp.nic_addr, sizeof(resp.nic_addr));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_DEVICE_RESP_PID_GRANULE,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD1_RESP_PID_GRANULE,
 			     &resp.pid_granule, sizeof(resp.pid_granule));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_DEVICE_RESP_PID_COUNT,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD1_RESP_PID_COUNT,
 			     &resp.pid_count, sizeof(resp.pid_count));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_DEVICE_RESP_PID_BITS,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD1_RESP_PID_BITS,
 			     &resp.pid_bits, sizeof(resp.pid_bits));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_DEVICE_RESP_MIN_FREE_SHIFT,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD1_RESP_MIN_FREE_SHIFT,
 			     &resp.min_free_shift, sizeof(resp.min_free_shift));
 	if (ret)
 		return ret;
 
-	ibdev_dbg(ibdev, "CXI device query: NIC addr=0x%x, PID granule=%u\n",
+	ibdev_dbg(ibdev, "CXI Method 1: NIC addr=0x%x, PID granule=%u\n",
 		  resp.nic_addr, resp.pid_granule);
 
 	return 0;
 }
 
-/* Vendor-specific ioctl handler 2: Query CXI memory region information */
-static int UVERBS_HANDLER(CXI_IB_METHOD_MR_QUERY)(struct uverbs_attr_bundle *attrs)
+/* Vendor-specific ioctl handler 2: CXI Method 2 - Memory region information query */
+static int UVERBS_HANDLER(CXI_IB_METHOD_2)(struct uverbs_attr_bundle *attrs)
 {
-	struct ib_mr *ibmr = uverbs_attr_get_obj(attrs, CXI_IB_ATTR_QUERY_MR_HANDLE);
+	struct ib_mr *ibmr = uverbs_attr_get_obj(attrs, CXI_IB_ATTR_METHOD2_MR_HANDLE);
 	struct cxi_ib_mr *mr = container_of(ibmr, struct cxi_ib_mr, ibmr);
-	struct cxi_ib_query_mr_resp resp = {};
+	struct cxi_ib_method2_resp resp = {};
 	int ret;
 
 	if (!ibmr) {
@@ -639,38 +639,38 @@ static int UVERBS_HANDLER(CXI_IB_METHOD_MR_QUERY)(struct uverbs_attr_bundle *att
 	resp.access_flags = 0; /* Convert from IB access flags if needed */
 
 	/* Copy response to user space */
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_MR_RESP_MD_HANDLE,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD2_RESP_MD_HANDLE,
 			     &resp.md_handle, sizeof(resp.md_handle));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_MR_RESP_IOVA,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD2_RESP_IOVA,
 			     &resp.iova, sizeof(resp.iova));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_MR_RESP_LENGTH,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD2_RESP_LENGTH,
 			     &resp.length, sizeof(resp.length));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_MR_RESP_ACCESS_FLAGS,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD2_RESP_ACCESS_FLAGS,
 			     &resp.access_flags, sizeof(resp.access_flags));
 	if (ret)
 		return ret;
 
-	ibdev_dbg(ibmr->device, "CXI MR query: handle=0x%x, IOVA=0x%llx, len=%llu\n",
+	ibdev_dbg(ibmr->device, "CXI Method 2: handle=0x%x, IOVA=0x%llx, len=%llu\n",
 		  resp.md_handle, resp.iova, resp.length);
 
 	return 0;
 }
 
-/* Vendor-specific ioctl handler 3: Query CXI queue pair information */
-static int UVERBS_HANDLER(CXI_IB_METHOD_QP_QUERY)(struct uverbs_attr_bundle *attrs)
+/* Vendor-specific ioctl handler 3: CXI Method 3 - Queue pair information query */
+static int UVERBS_HANDLER(CXI_IB_METHOD_3)(struct uverbs_attr_bundle *attrs)
 {
-	struct ib_qp *ibqp = uverbs_attr_get_obj(attrs, CXI_IB_ATTR_QUERY_QP_HANDLE);
+	struct ib_qp *ibqp = uverbs_attr_get_obj(attrs, CXI_IB_ATTR_METHOD3_QP_HANDLE);
 	struct cxi_ib_qp *qp = container_of(ibqp, struct cxi_ib_qp, ibqp);
-	struct cxi_ib_query_qp_resp resp = {};
+	struct cxi_ib_method3_resp resp = {};
 	int ret;
 
 	if (!ibqp) {
@@ -686,116 +686,106 @@ static int UVERBS_HANDLER(CXI_IB_METHOD_QP_QUERY)(struct uverbs_attr_bundle *att
 	resp.state = qp->state;
 
 	/* Copy response to user space */
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_QP_RESP_TXQ_HANDLE,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD3_RESP_TXQ_HANDLE,
 			     &resp.txq_handle, sizeof(resp.txq_handle));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_QP_RESP_TGQ_HANDLE,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD3_RESP_TGQ_HANDLE,
 			     &resp.tgq_handle, sizeof(resp.tgq_handle));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_QP_RESP_CMDQ_HANDLE,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD3_RESP_CMDQ_HANDLE,
 			     &resp.cmdq_handle, sizeof(resp.cmdq_handle));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_QP_RESP_EQ_HANDLE,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD3_RESP_EQ_HANDLE,
 			     &resp.eq_handle, sizeof(resp.eq_handle));
 	if (ret)
 		return ret;
 
-	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_QUERY_QP_RESP_STATE,
+	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_METHOD3_RESP_STATE,
 			     &resp.state, sizeof(resp.state));
 	if (ret)
 		return ret;
 
-	ibdev_dbg(ibqp->device, "CXI QP query: TXQ=0x%x, TGQ=0x%x, state=%u\n",
+	ibdev_dbg(ibqp->device, "CXI Method 3: TXQ=0x%x, TGQ=0x%x, state=%u\n",
 		  resp.txq_handle, resp.tgq_handle, resp.state);
 
 	return 0;
 }
 
-/* Declare vendor-specific method 1: CXI device query */
-DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_QUERY_DEVICE,
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_DEVICE_RESP_NIC_ADDR,
+/* Declare vendor-specific method 1: CXI generic method 1 */
+DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_1,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD1_RESP_NIC_ADDR,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_DEVICE_RESP_PID_GRANULE,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD1_RESP_PID_GRANULE,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_DEVICE_RESP_PID_COUNT,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD1_RESP_PID_COUNT,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_DEVICE_RESP_PID_BITS,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD1_RESP_PID_BITS,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_DEVICE_RESP_MIN_FREE_SHIFT,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD1_RESP_MIN_FREE_SHIFT,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY));
 
-/* Declare vendor-specific method 2: CXI memory region query */
-DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_MR_QUERY,
-			    UVERBS_ATTR_IDR(CXI_IB_ATTR_QUERY_MR_HANDLE,
+/* Declare vendor-specific method 2: CXI generic method 2 */
+DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_2,
+			    UVERBS_ATTR_IDR(CXI_IB_ATTR_METHOD2_MR_HANDLE,
 					    UVERBS_OBJECT_MR,
 					    UVERBS_ACCESS_READ,
 					    UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_MR_RESP_MD_HANDLE,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD2_RESP_MD_HANDLE,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_MR_RESP_IOVA,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD2_RESP_IOVA,
 						UVERBS_ATTR_TYPE(u64),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_MR_RESP_LENGTH,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD2_RESP_LENGTH,
 						UVERBS_ATTR_TYPE(u64),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_MR_RESP_ACCESS_FLAGS,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD2_RESP_ACCESS_FLAGS,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY));
 
-/* Declare vendor-specific method 3: CXI queue pair query */
-DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_QP_QUERY,
-			    UVERBS_ATTR_IDR(CXI_IB_ATTR_QUERY_QP_HANDLE,
+/* Declare vendor-specific method 3: CXI generic method 3 */
+DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_3,
+			    UVERBS_ATTR_IDR(CXI_IB_ATTR_METHOD3_QP_HANDLE,
 					    UVERBS_OBJECT_QP,
 					    UVERBS_ACCESS_READ,
 					    UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_QP_RESP_TXQ_HANDLE,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD3_RESP_TXQ_HANDLE,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_QP_RESP_TGQ_HANDLE,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD3_RESP_TGQ_HANDLE,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_QP_RESP_CMDQ_HANDLE,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD3_RESP_CMDQ_HANDLE,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_QP_RESP_EQ_HANDLE,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD3_RESP_EQ_HANDLE,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY),
-			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_QUERY_QP_RESP_STATE,
+			    UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_METHOD3_RESP_STATE,
 						UVERBS_ATTR_TYPE(u32),
 						UA_MANDATORY));
 
-/* Add vendor-specific methods to existing objects */
-ADD_UVERBS_METHODS(cxi_ib_device,
-		   UVERBS_OBJECT_DEVICE,
-		   &UVERBS_METHOD(CXI_IB_METHOD_QUERY_DEVICE));
-
-ADD_UVERBS_METHODS(cxi_ib_mr,
-		   UVERBS_OBJECT_MR,
-		   &UVERBS_METHOD(CXI_IB_METHOD_MR_QUERY));
-
-ADD_UVERBS_METHODS(cxi_ib_qp,
-		   UVERBS_OBJECT_QP,
-		   &UVERBS_METHOD(CXI_IB_METHOD_QP_QUERY));
+/* Define CXI generic object with all three methods */
+DECLARE_UVERBS_NAMED_OBJECT(CXI_IB_OBJECT_GENERIC,
+			     UVERBS_TYPE_ALLOC_IDR(0, 1),
+			     &UVERBS_METHOD(CXI_IB_METHOD_1),
+			     &UVERBS_METHOD(CXI_IB_METHOD_2),
+			     &UVERBS_METHOD(CXI_IB_METHOD_3));
 
 /* CXI vendor-specific UAPI definitions */
 const struct uapi_definition cxi_ib_uapi_defs[] = {
-	UAPI_DEF_CHAIN_OBJ_TREE(UVERBS_OBJECT_DEVICE,
-				&cxi_ib_device),
-	UAPI_DEF_CHAIN_OBJ_TREE(UVERBS_OBJECT_MR,
-				&cxi_ib_mr),
-	UAPI_DEF_CHAIN_OBJ_TREE(UVERBS_OBJECT_QP,
-				&cxi_ib_qp),
+	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(CXI_IB_OBJECT_GENERIC,
+				      &UVERBS_OBJECT(CXI_IB_OBJECT_GENERIC)),
 	{},
 };

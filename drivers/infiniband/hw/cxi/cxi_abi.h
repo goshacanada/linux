@@ -21,52 +21,45 @@
  * hex bit offset of the field.
  */
 
-/* CXI vendor-specific device query attributes */
-enum cxi_ib_query_device_attrs {
-	CXI_IB_ATTR_QUERY_DEVICE_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-	CXI_IB_ATTR_QUERY_DEVICE_RESP_NIC_ADDR,
-	CXI_IB_ATTR_QUERY_DEVICE_RESP_PID_GRANULE,
-	CXI_IB_ATTR_QUERY_DEVICE_RESP_PID_COUNT,
-	CXI_IB_ATTR_QUERY_DEVICE_RESP_PID_BITS,
-	CXI_IB_ATTR_QUERY_DEVICE_RESP_MIN_FREE_SHIFT,
+/* CXI vendor-specific generic object attributes */
+enum cxi_ib_generic_attrs {
+	/* Method 1 attributes - Device query */
+	CXI_IB_ATTR_METHOD1_RESP_NIC_ADDR = (1U << UVERBS_ID_NS_SHIFT),
+	CXI_IB_ATTR_METHOD1_RESP_PID_GRANULE,
+	CXI_IB_ATTR_METHOD1_RESP_PID_COUNT,
+	CXI_IB_ATTR_METHOD1_RESP_PID_BITS,
+	CXI_IB_ATTR_METHOD1_RESP_MIN_FREE_SHIFT,
+
+	/* Method 2 attributes - Memory region query */
+	CXI_IB_ATTR_METHOD2_MR_HANDLE,
+	CXI_IB_ATTR_METHOD2_RESP_MD_HANDLE,
+	CXI_IB_ATTR_METHOD2_RESP_IOVA,
+	CXI_IB_ATTR_METHOD2_RESP_LENGTH,
+	CXI_IB_ATTR_METHOD2_RESP_ACCESS_FLAGS,
+
+	/* Method 3 attributes - Queue pair query */
+	CXI_IB_ATTR_METHOD3_QP_HANDLE,
+	CXI_IB_ATTR_METHOD3_RESP_TXQ_HANDLE,
+	CXI_IB_ATTR_METHOD3_RESP_TGQ_HANDLE,
+	CXI_IB_ATTR_METHOD3_RESP_CMDQ_HANDLE,
+	CXI_IB_ATTR_METHOD3_RESP_EQ_HANDLE,
+	CXI_IB_ATTR_METHOD3_RESP_STATE,
 };
 
-/* CXI vendor-specific memory region query attributes */
-enum cxi_ib_query_mr_attrs {
-	CXI_IB_ATTR_QUERY_MR_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-	CXI_IB_ATTR_QUERY_MR_RESP_MD_HANDLE,
-	CXI_IB_ATTR_QUERY_MR_RESP_IOVA,
-	CXI_IB_ATTR_QUERY_MR_RESP_LENGTH,
-	CXI_IB_ATTR_QUERY_MR_RESP_ACCESS_FLAGS,
+/* CXI vendor-specific generic object methods */
+enum cxi_ib_generic_methods {
+	CXI_IB_METHOD_1 = (1U << UVERBS_ID_NS_SHIFT),
+	CXI_IB_METHOD_2,
+	CXI_IB_METHOD_3,
 };
 
-/* CXI vendor-specific queue pair query attributes */
-enum cxi_ib_query_qp_attrs {
-	CXI_IB_ATTR_QUERY_QP_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-	CXI_IB_ATTR_QUERY_QP_RESP_TXQ_HANDLE,
-	CXI_IB_ATTR_QUERY_QP_RESP_TGQ_HANDLE,
-	CXI_IB_ATTR_QUERY_QP_RESP_CMDQ_HANDLE,
-	CXI_IB_ATTR_QUERY_QP_RESP_EQ_HANDLE,
-	CXI_IB_ATTR_QUERY_QP_RESP_STATE,
+/* CXI vendor-specific generic object */
+enum cxi_ib_objects {
+	CXI_IB_OBJECT_GENERIC = (1U << UVERBS_ID_NS_SHIFT),
 };
 
-/* CXI vendor-specific device methods */
-enum cxi_ib_device_methods {
-	CXI_IB_METHOD_QUERY_DEVICE = (1U << UVERBS_ID_NS_SHIFT),
-};
-
-/* CXI vendor-specific memory region methods */
-enum cxi_ib_mr_methods {
-	CXI_IB_METHOD_MR_QUERY = (1U << UVERBS_ID_NS_SHIFT),
-};
-
-/* CXI vendor-specific queue pair methods */
-enum cxi_ib_qp_methods {
-	CXI_IB_METHOD_QP_QUERY = (1U << UVERBS_ID_NS_SHIFT),
-};
-
-/* CXI device query response structure */
-struct cxi_ib_query_device_resp {
+/* CXI method 1 response structure - Device query */
+struct cxi_ib_method1_resp {
 	__u32 comp_mask;
 	__u32 nic_addr;
 	__u32 pid_granule;
@@ -76,8 +69,8 @@ struct cxi_ib_query_device_resp {
 	__u8 reserved_18[4];
 };
 
-/* CXI memory region query response structure */
-struct cxi_ib_query_mr_resp {
+/* CXI method 2 response structure - Memory region query */
+struct cxi_ib_method2_resp {
 	__u32 comp_mask;
 	__u32 md_handle;
 	__aligned_u64 iova;
@@ -86,8 +79,8 @@ struct cxi_ib_query_mr_resp {
 	__u8 reserved_1c[4];
 };
 
-/* CXI queue pair query response structure */
-struct cxi_ib_query_qp_resp {
+/* CXI method 3 response structure - Queue pair query */
+struct cxi_ib_method3_resp {
 	__u32 comp_mask;
 	__u32 txq_handle;
 	__u32 tgq_handle;

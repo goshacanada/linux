@@ -15,8 +15,8 @@ extern "C" {
 
 /* CXI Direct Verbs - Vendor-specific extensions */
 
-/* CXI device attributes structure */
-struct cxidv_device_attr {
+/* CXI Method 1 attributes structure - Device information */
+struct cxidv_method1_attr {
 	uint64_t comp_mask;
 	uint32_t nic_addr;
 	uint32_t pid_granule;
@@ -26,8 +26,8 @@ struct cxidv_device_attr {
 	uint8_t reserved[4];
 };
 
-/* CXI memory region attributes structure */
-struct cxidv_mr_attr {
+/* CXI Method 2 attributes structure - Memory region information */
+struct cxidv_method2_attr {
 	uint64_t comp_mask;
 	uint32_t md_handle;
 	uint64_t iova;
@@ -36,8 +36,8 @@ struct cxidv_mr_attr {
 	uint8_t reserved[4];
 };
 
-/* CXI queue pair attributes structure */
-struct cxidv_qp_attr {
+/* CXI Method 3 attributes structure - Queue pair information */
+struct cxidv_method3_attr {
 	uint64_t comp_mask;
 	uint32_t txq_handle;
 	uint32_t tgq_handle;
@@ -78,40 +78,40 @@ enum {
 };
 
 /**
- * cxidv_query_device - Query CXI-specific device attributes
+ * cxidv_method1 - CXI Method 1 - Query device information
  * @context: InfiniBand context
- * @attr: Device attributes structure to fill
+ * @attr: Method 1 attributes structure to fill
  * @inlen: Size of the attributes structure
  *
  * Returns 0 on success, errno on failure
  */
-int cxidv_query_device(struct ibv_context *context,
-		       struct cxidv_device_attr *attr,
-		       uint32_t inlen);
+int cxidv_method1(struct ibv_context *context,
+		  struct cxidv_method1_attr *attr,
+		  uint32_t inlen);
 
 /**
- * cxidv_query_mr - Query CXI-specific memory region attributes
+ * cxidv_method2 - CXI Method 2 - Query memory region information
  * @mr: Memory region to query
- * @attr: Memory region attributes structure to fill
+ * @attr: Method 2 attributes structure to fill
  * @inlen: Size of the attributes structure
  *
  * Returns 0 on success, errno on failure
  */
-int cxidv_query_mr(struct ibv_mr *mr,
-		   struct cxidv_mr_attr *attr,
-		   uint32_t inlen);
+int cxidv_method2(struct ibv_mr *mr,
+		  struct cxidv_method2_attr *attr,
+		  uint32_t inlen);
 
 /**
- * cxidv_query_qp - Query CXI-specific queue pair attributes
+ * cxidv_method3 - CXI Method 3 - Query queue pair information
  * @qp: Queue pair to query
- * @attr: Queue pair attributes structure to fill
+ * @attr: Method 3 attributes structure to fill
  * @inlen: Size of the attributes structure
  *
  * Returns 0 on success, errno on failure
  */
-int cxidv_query_qp(struct ibv_qp *qp,
-		   struct cxidv_qp_attr *attr,
-		   uint32_t inlen);
+int cxidv_method3(struct ibv_qp *qp,
+		  struct cxidv_method3_attr *attr,
+		  uint32_t inlen);
 
 /**
  * cxidv_is_supported - Check if the device supports CXI direct verbs
@@ -139,14 +139,14 @@ static inline const char *cxidv_get_version(void)
 #define CXIDV_FIELD_AVAIL(type, field, inlen) \
 	(offsetof(type, field) + sizeof(((type *)0)->field) <= (inlen))
 
-#define CXIDV_DEVICE_ATTR_FIELD_AVAIL(field, inlen) \
-	CXIDV_FIELD_AVAIL(struct cxidv_device_attr, field, inlen)
+#define CXIDV_METHOD1_ATTR_FIELD_AVAIL(field, inlen) \
+	CXIDV_FIELD_AVAIL(struct cxidv_method1_attr, field, inlen)
 
-#define CXIDV_MR_ATTR_FIELD_AVAIL(field, inlen) \
-	CXIDV_FIELD_AVAIL(struct cxidv_mr_attr, field, inlen)
+#define CXIDV_METHOD2_ATTR_FIELD_AVAIL(field, inlen) \
+	CXIDV_FIELD_AVAIL(struct cxidv_method2_attr, field, inlen)
 
-#define CXIDV_QP_ATTR_FIELD_AVAIL(field, inlen) \
-	CXIDV_FIELD_AVAIL(struct cxidv_qp_attr, field, inlen)
+#define CXIDV_METHOD3_ATTR_FIELD_AVAIL(field, inlen) \
+	CXIDV_FIELD_AVAIL(struct cxidv_method3_attr, field, inlen)
 
 #ifdef __cplusplus
 }

@@ -40,22 +40,22 @@ The driver follows the standard InfiniBand driver architecture with the followin
 - **User Context**: Allocate, deallocate for user-space access
 
 #### Vendor-Specific Extensions
-The driver implements three vendor-specific ioctl handlers for advanced CXI functionality:
+The driver implements a single generic object (`CXI_IB_OBJECT_GENERIC`) with three vendor-specific ioctl handlers:
 
-1. **CXI Device Query** (`CXI_IB_METHOD_QUERY_DEVICE`)
+1. **CXI Method 1** (`CXI_IB_METHOD_1`)
    - Retrieves CXI-specific device information
    - Returns NIC address, PID granule, PID count, PID bits, and min_free_shift
-   - Accessible via `cxidv_query_device()` user-space API
+   - Accessible via `cxidv_method1()` user-space API
 
-2. **CXI Memory Region Query** (`CXI_IB_METHOD_MR_QUERY`)
+2. **CXI Method 2** (`CXI_IB_METHOD_2`)
    - Queries CXI-specific memory region attributes
    - Returns MD handle, IOVA, length, and access flags
-   - Accessible via `cxidv_query_mr()` user-space API
+   - Accessible via `cxidv_method2()` user-space API
 
-3. **CXI Queue Pair Query** (`CXI_IB_METHOD_QP_QUERY`)
+3. **CXI Method 3** (`CXI_IB_METHOD_3`)
    - Retrieves CXI-specific queue pair information
    - Returns TXQ handle, TGQ handle, command queue handle, event queue handle, and state
-   - Accessible via `cxidv_query_qp()` user-space API
+   - Accessible via `cxidv_method3()` user-space API
 
 #### Communication Layer
 - Interfaces with the CXI core driver
@@ -109,17 +109,17 @@ For vendor-specific functionality, applications can use the CXI Direct Verbs API
 ```c
 #include "cxidv.h"
 
-// Query CXI device information
-struct cxidv_device_attr dev_attr;
-int ret = cxidv_query_device(context, &dev_attr, sizeof(dev_attr));
+// CXI Method 1: Query device information
+struct cxidv_method1_attr method1_attr;
+int ret = cxidv_method1(context, &method1_attr, sizeof(method1_attr));
 
-// Query CXI memory region information
-struct cxidv_mr_attr mr_attr;
-ret = cxidv_query_mr(mr, &mr_attr, sizeof(mr_attr));
+// CXI Method 2: Query memory region information
+struct cxidv_method2_attr method2_attr;
+ret = cxidv_method2(mr, &method2_attr, sizeof(method2_attr));
 
-// Query CXI queue pair information
-struct cxidv_qp_attr qp_attr;
-ret = cxidv_query_qp(qp, &qp_attr, sizeof(qp_attr));
+// CXI Method 3: Query queue pair information
+struct cxidv_method3_attr method3_attr;
+ret = cxidv_method3(qp, &method3_attr, sizeof(method3_attr));
 ```
 
 ## Testing
